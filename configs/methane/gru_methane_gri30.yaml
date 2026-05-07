@@ -1,0 +1,34 @@
+# GRU (ode_rnn) on revWGS + OH-gated methane scaffold (Kazakov data)
+
+study: methane_hydrogen_balance
+exp_name: methane_hydrogen_balance1
+out_root: experiments
+
+epochs: 100
+batch_size: 32
+lr: 0.001
+weight_decay: 0.0085
+val_n: 100
+test_n: 100
+seed: 42
+
+hidden: 256
+lift_dim: 32
+num_layers: 2
+dropout: 0.0
+grad_clip: 1.0
+
+teacher_forcing: true
+tf_every: 50
+tf_drop_epoch: 500
+
+scaffold: methane_obs5
+dataset_path: datasets/gri30_obs5.npz
+obs_idx: [0, 1, 2, 3, 4]
+theta_lo: 1.0e-5
+theta_hi: 10.0
+n_substeps: 1
+
+ckpt_every: 10
+jit_scripting: true
+model_class: ode_rnn

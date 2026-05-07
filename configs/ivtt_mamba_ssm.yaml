@@ -1,0 +1,84 @@
+# Mamba (mamba_ssm) encoder + Bob's analytic IVTT step.
+# Identical data / split / loss / theta-bounds to configs/ivtt_gru.yaml;
+# only the encoder is swapped (model_class: ode_mamba_ssm).
+# Requires CUDA + `pip install mamba-ssm causal-conv1d`.
+
+dataset_path: datasets/real_ivtt_exact_full.npz
+study: ivtt_mamba_ssm
+tags: null
+exp_name: default
+out_root: experiments
+
+save_model_name: model.pt
+save_last_name: model_last.pt
+save_curves_name: loss_curves.npz
+
+epochs: 250
+batch_size: 100
+lr: 0.002
+weight_decay: 0.0018
+warmup_epochs: 0
+cosine_decay: false
+
+val_n: 0
+test_n: 0
+val_frac: 0.0
+seed: 42
+split_seed: 42
+
+use_fixed_split: true
+fixed_split_seed: 57
+fixed_test_frac: 0.125
+fixed_val_frac: 0.125
+fixed_split_file: "bob_model/3 seed splits.py"
+fixed_split_idx: 0
+
+stratified_split: false
+stratify_bins: 5
+stratify_targets: null
+
+num_workers: 0
+pin_memory: true
+
+# === Model: Mamba SSM encoder + analytic IVTT scaffold ===
+model_class: ode_mamba_ssm
+scaffold: ivtt_analytic
+
+# Mamba encoder
+hidden: 400
+lift_dim: 32          # ignored when lift_skip=true
+num_layers: 2
+dropout: 0.2
+lift_skip: true                 # no 2-layer SiLU lift — single Linear(feat_in, hidden), GRU-equivalent
+head_init: supervisor           # xavier_uniform_ + zeros — match GRU/Bob head init
+d_state: 16
+expand: 2
+d_conv: 4
+
+theta_lo: 1.0e-06
+theta_hi: 2.0
+theta_bounded: true
+theta_head_transform: log_gamma
+theta_head_tau: 2.3
+n_substeps: 1
+
+# Bob-style encoder feature pipeline.
+gru_u_cols: [0, 1, 3, 4, 5, 6, 7, 8, 9, 10, 11]
+gru_y_cols: [3, 5]
+u_transform: sqrt
+y_transform: sqrt_clamp1
+
+# Loss
+obs_normalization: null
+use_ivtt_mse_loss: true
+obs_idx: [3, 5]
+
+# TF
+teacher_forcing: true
+tf_every: 200
+tf_drop_epoch: 100
+grad_clip: 1.0
+
+# Mamba CUDA kernels — JIT off (mamba_ssm uses custom CUDA, not scriptable).
+jit_scripting: false
+endpoint_r2: true

@@ -1,0 +1,39 @@
+# Base config for AramcoMech 3.0 / Kovacs 54-reaction scaffold experiments
+
+study: aramco_kovacs54
+exp_name: aramco_kovacs54_baseline
+out_root: experiments
+
+epochs: 100
+batch_size: 32
+lr: 0.001
+weight_decay: 0.0085
+val_n: 100
+test_n: 100
+seed: 42
+
+hidden: 256
+lift_dim: 32
+num_layers: 2
+dropout: 0.0
+grad_clip: 1.0
+
+teacher_forcing: true
+tf_every: 50
+tf_drop_epoch: 500
+
+scaffold: kovacs_54
+dataset_path: datasets/aramco_kovacs14_fixed_molfrac.npz
+obs_idx: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13]
+theta_lo: 1.0e-6
+theta_hi: 100.0
+n_substeps: 1
+
+# Per-species z-score normalization: prevents model from being rewarded
+# for predicting 0 on sparse radical species (CH3, CH2O, HO2 etc).
+# Stats computed from training split only; plain MSE loss is used.
+obs_normalization: zscore
+
+ckpt_every: 10
+jit_scripting: true
+model_class: ode_rnn

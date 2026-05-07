@@ -1,0 +1,34 @@
+# Base config for GRU (ode_rnn).
+# Override study/exp_name/out_root/scaffold/dataset_path per run via --set.
+
+study: gru_test
+exp_name: gru_test1
+out_root: experiments
+
+epochs: 100
+batch_size: 32
+lr: 0.001
+weight_decay: 0.0085
+val_n: 100
+test_n: 100
+seed: 42
+
+hidden: 128
+lift_dim: 32
+num_layers: 2
+dropout: 0.1
+grad_clip: 1.0
+
+teacher_forcing: true
+tf_every: 50
+tf_drop_epoch: 500
+
+scaffold: mof_synthesis_4
+dataset_path: datasets/mof_synthesis_4.npz
+theta_lo: 1.0e-3
+theta_hi: 2.0
+n_substeps: 1
+
+ckpt_every: 10
+jit_scripting: true
+model_class: ode_rnn

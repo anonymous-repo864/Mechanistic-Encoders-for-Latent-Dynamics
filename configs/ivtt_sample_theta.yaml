@@ -1,0 +1,66 @@
+# Ablation: per-sample constant theta. An MLP encodes y0 into one theta vector
+# held fixed across all timesteps for that sample. Sits between ode_fixed_theta
+# (one global theta) and the encoder-driven IVTT models (time-varying theta).
+
+dataset_path: datasets/real_ivtt_exact_full.npz
+study: ivtt_sample_theta
+tags: null
+exp_name: default
+out_root: experiments
+
+save_model_name: model.pt
+save_last_name: model_last.pt
+save_curves_name: loss_curves.npz
+
+epochs: 250
+batch_size: 100
+lr: 0.002
+weight_decay: 0.0018
+warmup_epochs: 0
+cosine_decay: false
+
+val_n: 0
+test_n: 0
+val_frac: 0.0
+seed: 42
+split_seed: 42
+
+use_fixed_split: true
+fixed_split_seed: 57
+fixed_test_frac: 0.125
+fixed_val_frac: 0.125
+fixed_split_file: "bob_model/3 seed splits.py"
+fixed_split_idx: 0
+
+stratified_split: false
+stratify_bins: 5
+stratify_targets: null
+
+num_workers: 0
+pin_memory: true
+
+# === Model: MLP(y0) -> theta, fixed for all timesteps ===
+model_class: ode_sample_theta
+scaffold: ivtt_analytic
+
+hidden: 400
+lift_dim: 32
+num_layers: 2
+dropout: 0.2
+
+theta_lo: 1.0e-06
+theta_hi: 2.0
+theta_bounded: true
+theta_head_transform: log_gamma
+theta_head_tau: 2.3
+n_substeps: 1
+
+obs_normalization: null
+use_ivtt_mse_loss: true
+obs_idx: [3, 5]
+
+teacher_forcing: false
+grad_clip: 1.0
+
+jit_scripting: false
+endpoint_r2: true
