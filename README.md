@@ -130,6 +130,10 @@ We include several baseline implementations in the `last-layer-ode/models/` dire
 * `ode_sample_theta.py`: Per-sample constant-$\theta$ baseline (varies across samples, fixed over time).
 * `bob_gru_verbatim.py`: Verbatim Bob GRU reference baseline adapted to the shared training API.
 
+## Acknowledgments
+
+Our Mamba SSM encoder implementation builds on [mamba-ssm](https://github.com/state-spaces/mamba), the official reference implementation for state space models.
+
 ## License
 
 This project is licensed under the MIT License
