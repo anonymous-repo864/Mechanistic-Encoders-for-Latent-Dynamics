@@ -118,7 +118,6 @@ We include several baseline implementations in the `last-layer-ode/models/` dire
 * `ode_fixed_theta.py`: Constant-$\theta$ baseline (single global learnable parameter vector).
 * `ode_fixed_theta_nn.py`: Hybrid baseline with fixed mechanistic $\theta$ plus neural correction.
 * `ode_sample_theta.py`: Per-sample constant-$\theta$ baseline (varies across samples, fixed over time).
-* `bob_gru_verbatim.py`: Verbatim Bob GRU reference baseline adapted to the shared training API.
 
 ## Acknowledgments
 
