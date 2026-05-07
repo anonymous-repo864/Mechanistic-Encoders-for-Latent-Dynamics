@@ -95,7 +95,7 @@ python last-layer-ode/plot_diagnostics.py <path_to_run>
 
 ### Additional Analysis Tools
 
-For deeper inspection into identifiability and per-step parameter fitting, use our analysis scripts:
+For deeper inspection into identifiability and per-step parameter fitting, use the analysis scripts:
 
 **Fit theta parameters per time step via gradient descent**
 ```bash
