@@ -1,6 +1,8 @@
 # Bolus-to-parameter maps
 
-This repository is the official implementation of [Bolus-to-parameter maps](https://arxiv.org/abs/0000.00000).
+This repository is the official implementation of Mechanistic Encoders for Latent Dynamics.
+
+<!-- This repository is the official implementation of [Mechanistic Encoders for Latent Dynamics](https://arxiv.org/abs/0000.00000). -->
 
 ## Overview
 
