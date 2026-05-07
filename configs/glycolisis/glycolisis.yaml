@@ -9,8 +9,8 @@ epochs: 100
 batch_size: 32
 lr: 0.001
 weight_decay: 0.0085
-val_n: 100
-test_n: 100
+val_n: 1
+test_n: 1
 seed: 42
 
 hidden: 256
@@ -23,8 +23,8 @@ teacher_forcing: true
 tf_every: 50
 tf_drop_epoch: 500
 
-scaffold: glycolysis_reduced12
-dataset_path: datasets/glycolysis/glycolysis_reduced12_n1000.npz
+scaffold: glycolysis_oracle22
+dataset_path: datasets/glycolysis/glycolysis_oracle22_n1000.npz
 theta_lo: 1.0e-3
 theta_hi: 100.0
 n_substeps: 1

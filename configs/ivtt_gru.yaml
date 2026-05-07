@@ -1,10 +1,3 @@
-# Modular re-implementation of configs/bob_gru_verbatim.yaml.
-# Same data, same split, same loss, same hyperparameters — but routed through
-# the standard model_class API (model_class=ode_rnn + scaffold=ivtt_analytic)
-# so the architecture (GRU/transformer/mamba/...) is swappable via model_class.
-#
-# Generate the dataset with (EXACT bob_model semantics):
-#   python datasets/convert_real_to_npz.py --layout full --reagent-scaling none --dna-mode raw --obs-align current --output datasets/real_ivtt_exact_full.npz
 
 dataset_path: datasets/real_ivtt_exact_full_drop5000.npz
 study: ivtt_gru_drop5000
@@ -16,7 +9,6 @@ save_model_name: model.pt
 save_last_name: model_last.pt
 save_curves_name: loss_curves.npz
 
-# Training hyperparameters (verbatim from bob_model/main_neural_spline.py)
 epochs: 250
 batch_size: 100
 lr: 0.002
@@ -31,7 +23,6 @@ val_frac: 0.0
 seed: 42
 split_seed: 42
 
-# Hardcoded (test, val, train) triples from bob_model/3 seed splits.py
 use_fixed_split: true
 fixed_split_seed: 57
 fixed_test_frac: 0.125
@@ -46,17 +37,13 @@ stratify_targets: null
 num_workers: 0
 pin_memory: true
 
-# === Model: GRU encoder + Bob's analytic IVTT step ===
 model_class: ode_rnn
 scaffold: ivtt_analytic
 
-# Encoder (matches bob_model/spline_models.py:GRU_model_latent_decay_simple_fb_matO)
 hidden: 400
 lift_dim: 32          # ignored when lift_skip=true
 num_layers: 2
 dropout: 0.2
-lift_skip: true                 # Bob has no lift MLP — feed feat→GRU directly
-gru_variant: stacked_cell       # Bob's stacked GRUCell (dropout on every layer)
 gru_init: supervisor            # orthogonal_(W_hh) + xavier_(W_ih) + zeros(biases)
 head_init: supervisor           # xavier_(weight) + zeros(bias)
 
@@ -65,12 +52,8 @@ head_init: supervisor           # xavier_(weight) + zeros(bias)
 theta_lo: 1.0e-06
 theta_hi: 2.0
 theta_bounded: true
-theta_head_transform: log_gamma  # Bob's gamma() — sigmoid in log-space
-theta_head_tau: 2.3              # Bob hardcodes tau=2.3
 n_substeps: 1                    # unused under analytic step
 
-# Encoder feature pipeline — replicates Bob's
-#   feat = cat([sqrt(u_no_dna), sqrt(mm).clamp_min(1), sqrt(pm).clamp_min(1)])
 gru_u_cols: [0, 1, 3, 4, 5, 6, 7, 8, 9, 10, 11]   # all 12 control cols except DNA c (idx 2)
 gru_y_cols: [3, 5]                                 # only mm (idx 3) and pm (idx 5) feed the encoder
 u_transform: sqrt
@@ -83,8 +66,6 @@ obs_normalization: null
 use_ivtt_mse_loss: true
 obs_idx: [3, 5]    # diagnostic slicing for printed test metrics; doesn't change training loss
 
-# Teacher forcing — Bob fires at k=0 too (with k-1=-1 wrap to last frame).
-# IvttAnalyticScaffold.tf_at_k_zero=True flips that on.
 teacher_forcing: true
 tf_every: 200
 tf_drop_epoch: 100

@@ -1,4 +1,3 @@
-# Mamba (mamba_ssm) encoder + Bob's analytic IVTT step.
 # Identical data / split / loss / theta-bounds to configs/ivtt_gru.yaml;
 # only the encoder is swapped (model_class: ode_mamba_ssm).
 # Requires CUDA + `pip install mamba-ssm causal-conv1d`.
@@ -30,7 +29,7 @@ use_fixed_split: true
 fixed_split_seed: 57
 fixed_test_frac: 0.125
 fixed_val_frac: 0.125
-fixed_split_file: "bob_model/3 seed splits.py"
+fixed_split_file: "3 seed splits.py"
 fixed_split_idx: 0
 
 stratified_split: false
