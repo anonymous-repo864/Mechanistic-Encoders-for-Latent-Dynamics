@@ -65,16 +65,6 @@ To train a model, use the `train.py` script. You can pass a configuration file a
 python last-layer-ode/train.py --config my_config.yaml --set key=val
 ```
 
-### Using the Fixed Test Set
-For reproducible evaluation, use the new fixed test set. In your training config (`YAML`) or via CLI flags, ensure you set the following:
-
-```yaml
-# my_config.yaml
-fixed_test_idx_path: results/oracle_rollout_scoring/test_idx_104_maturation.npy
-test_n: 104       # informational only — gets overridden by the idx path
-val_n: 100        # drawn from the remaining 591 samples
-```
-
 ## Evaluation
 
 Our evaluation workflow centers around computing the Normalized Root Mean Square Error (NRMSE) and visually comparing trajectories. 
