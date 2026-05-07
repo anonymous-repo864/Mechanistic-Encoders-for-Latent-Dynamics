@@ -8,10 +8,16 @@ import numpy as np
 from scipy.interpolate import interp1d
 import torch
 
+try:
+    import cantera as ct
+except ImportError:
+    ct = None
+
 from sim.benchmark_models import FullModel
 from sim.MOF_model import MOF_Synthesis
 from sim.Single_enzyme import SingleEnzyme
-from sim.syndata_simulator_ODE import simulate_chain_with_bolus, simulate_ivp_with_bolus, single_event_generator
+from sim.explicit_methane_models import GRI30_FullModel, Kazakov_MiddleModel, Smooke_ReducedModel, Aramco_FullModel
+from sim.syndata_simulator_ODE import simulate_chain_with_bolus, simulate_ivp_with_bolus, single_event_generator, simulate_cantera_with_bolus
 
 # Lazy singleton — avoids instantiating the scaffold at import time.
 _glycolysis_oracle22_scaffold = None

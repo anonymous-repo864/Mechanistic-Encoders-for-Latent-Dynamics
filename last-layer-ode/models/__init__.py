@@ -1,7 +1,6 @@
 from models.ode_rnn import OdeRNN
 from models.ode_rnn_analytical import AnalyticalOdeRNN
 from models.ode_rnn_txtl import TXTLAnalyticalOdeRNN, TXTLAnalyticalBleachOdeRNN, TXTLApproxOdeRNN, TXTLMaturationApproxOdeRNN
-from models.bob_gru_verbatim import BobGRUVerbatim
 from models.neural_ode import NeuralODE
 from models.ode_transformer import OdeTransformer
 from models.ode_fixed_theta import OdeFixedTheta
@@ -39,7 +38,6 @@ MODELS: dict = {
     "neural_ode_correction": NeuralOdeCorrection,
     "ode_sample_theta":   OdeSampleTheta,
     "neural_ode_gru":     NeuralOdeGRU,
-    "bob_gru_verbatim": BobGRUVerbatim,
     # "ode_mamba":          OdeMamba,
     # "ode_transformer_kvcache": OdeTransformer_transformer,
     **({"ode_mamba_ssm": OdeMambaSSM} if _mamba_ssm_available else {}),
