@@ -6,14 +6,12 @@ from typing import Dict, List, Optional, Sequence, Tuple
 
 import numpy as np
 from scipy.interpolate import interp1d
-import cantera as ct
 import torch
 
 from sim.benchmark_models import FullModel
 from sim.MOF_model import MOF_Synthesis
 from sim.Single_enzyme import SingleEnzyme
-from sim.explicit_methane_models import GRI30_FullModel, Kazakov_MiddleModel, Smooke_ReducedModel, Aramco_FullModel
-from sim.syndata_simulator_ODE import simulate_chain_with_bolus, simulate_ivp_with_bolus, single_event_generator, simulate_cantera_with_bolus
+from sim.syndata_simulator_ODE import simulate_chain_with_bolus, simulate_ivp_with_bolus, single_event_generator
 
 # Lazy singleton — avoids instantiating the scaffold at import time.
 _glycolysis_oracle22_scaffold = None
@@ -395,61 +393,6 @@ def _glycolysis_oracle_to_reduced_config(
     )
 
 
-def _aramco_30_config() -> ModelConfig:
-    """
-    AramcoMech 3.0 pulsed-combustion configuration.
-
-    Hot-start scenario: simulations begin from the lean equilibrium state
-    (phi=0.4, original T=1000K → T_eq≈1878K) cooled to T_sample ∈ [1050, 1200]K.
-    CH4 boluses are then injected into this hot, O2-rich background, each triggering
-    a mini-ignition that drives the CH3→CH2O→CO radical chain.  This gives
-    continuous signal in intermediate species (CH3, CH2O, HO2) throughout the
-    trajectory, not just during a single brief ignition spike.
-
-    Y_PULSED_EQUIL: mass fractions from phi=0.4, T_init=1000K burned to equilibrium.
-    Precomputed so dataset generation incurs no extra 5s simulation at import time.
-    """
-    gas = ct.Solution('datasets/methane/aramco_30.yaml')
-    T_INIT = 1000.0
-    COMPOSITION = 'CH4:1.0, O2:2.0, N2:7.52'
-    gas.TPX = T_INIT, ct.one_atm, COMPOSITION
-
-    real_k_params = gas.forward_rate_constants.tolist()
-    param_ranges = [(v, v) for v in real_k_params]
-    x0_default = gas.concentrations.tolist()
-
-    # Lean equilibrium mass fractions (phi=0.4, T_eq≈1878K) — precomputed once.
-    # Main species: N2=0.749, O2=0.136, CO2=0.063, H2O=0.051, OH=5.8e-4
-    Y_PULSED_EQUIL = {
-        'N2': 7.49489182e-01, 'O2': 1.36331396e-01, 'CO2': 6.25485654e-02,
-        'H2O': 5.09508374e-02, 'OH': 5.77473185e-04, 'CO': 5.10405611e-05,
-        'O': 4.83901277e-05, 'H2': 1.77239310e-06, 'HO2': 1.17801196e-06,
-        'H': 1.19010253e-07, 'H2O2': 4.08126466e-08,
-    }
-    # Build full-length Y array aligned to species order
-    all_species = list(gas.species_names)
-    Y_full = [Y_PULSED_EQUIL.get(s, 0.0) for s in all_species]
-
-    # CH4 bolus amounts (kmol/m³) calibrated so each bolus is 2–10% of available O2
-    # at T≈1100K, keeping the system reactive without depleting O2 entirely.
-    bolus_ranges = {"CH4": (5e-6, 2e-5)}
-
-    return ModelConfig(
-        param_ranges=param_ranges,
-        x0_default=x0_default,
-        bolus_ranges=bolus_ranges,
-        bolus_default=(0.0, 0.0),   # non-CH4 channels get zero boluses
-        bolus_count_range=(4, 8),
-        simulator="cantera",
-        cantera_T=T_INIT,
-        cantera_T_range=(1050, 1200),  # cooling temperature range for hot start
-        cantera_phi_range=None,        # phi fixed at lean equil; no per-sample cold ignition
-        cantera_composition=COMPOSITION,
-        cantera_use_mole_fractions=True,
-        default_tail=0.5,
-        cantera_pulsed_mode=True,
-        cantera_pulsed_Y=Y_full,
-    )
 
 def _mof_synthesis_config() -> ModelConfig:
     default_params = [5.0, 1.0, 3.0, 2.0, 0.5, 0.1, 10.0, 1.0, 1.0, 3.0,
@@ -472,55 +415,13 @@ def _single_enzyme_config() -> ModelConfig:
         bolus_default=(0.5, 5.0), bolus_count_range=(2, 8), simulator="ivp"
     )
 
-def _gri30_full_config() -> ModelConfig:
-    gas = ct.Solution('gri30.yaml')
-    gas.TPX = 1500.0, ct.one_atm, 'CH4:1.0, O2:2.0, N2:7.52'
-    real_k_params = gas.forward_rate_constants.tolist()
-    param_ranges = [(v, v) for v in real_k_params]
-    x0_default = [0.0] * 53
-    x0_default[13] = 1.0   
-    x0_default[3]  = 2.0   
-    x0_default[47] = 7.52  
-    bolus_ranges = {"CH4": (0.05, 0.5), "O2":  (0.1,  1.0), "N2":  (0.5,  3.0), "H2O": (0.1,  1.0)}
-    return ModelConfig(
-        param_ranges=param_ranges, x0_default=x0_default, bolus_ranges=bolus_ranges,
-        bolus_default=(0.1, 1.0), bolus_count_range=(2, 8), simulator="ivp"
-    )
 
-def _kazakov_middle_config() -> ModelConfig:
-    default_params = [1.0] * 116
-    param_ranges = [(v, v) for v in default_params]
-    x0_default = [0.0] * 28
-    x0_default[11] = 1.0   
-    x0_default[3]  = 2.0   
-    x0_default[22] = 7.52  
-    bolus_ranges = {"CH4": (0.05, 0.5), "O2":  (0.1,  1.0), "N2":  (0.5,  3.0), "H2O": (0.1,  1.0)}
-    return ModelConfig(
-        param_ranges=param_ranges, x0_default=x0_default, bolus_ranges=bolus_ranges,
-        bolus_default=(0.1, 1.0), bolus_count_range=(2, 8), simulator="ivp"
-    )
 
-def _smooke_reduced_config() -> ModelConfig:
-    default_params = [1.0] * 35
-    param_ranges = [(v, v) for v in default_params]
-    x0_default = [0.0] * 16
-    x0_default[0]  = 1.0   
-    x0_default[2]  = 2.0   
-    x0_default[15] = 7.52  
-    bolus_ranges = {"CH4": (0.05, 0.5), "O2":  (0.1,  1.0), "N2":  (0.5,  3.0), "H2O": (0.1,  1.0)}
-    return ModelConfig(
-        param_ranges=param_ranges, x0_default=x0_default, bolus_ranges=bolus_ranges,
-        bolus_default=(0.1, 1.0), bolus_count_range=(2, 8), simulator="ivp"
-    )
 
 MODEL_CONFIGS: Dict[str, ModelConfig] = {
     "full13":               ModelConfig(),
     "mof_synthesis":        _mof_synthesis_config(),
     "single_enzyme":        _single_enzyme_config(),
-    "gri30_full":           _gri30_full_config(),
-    "kazakov_middle":       _kazakov_middle_config(),
-    "smooke_reduced_model": _smooke_reduced_config(),
-    "aramco_30":            _aramco_30_config(),
     "glycolysis_oracle22":  _glycolysis_oracle22_config(),
     "glycolysis_reduced12": _glycolysis_reduced12_config(),
     "glycolysis_reduced8":  _glycolysis_reduced8_config(),
